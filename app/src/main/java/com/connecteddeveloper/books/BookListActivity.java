@@ -1,5 +1,6 @@
 package com.connecteddeveloper.books;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -28,13 +29,20 @@ public class BookListActivity extends AppCompatActivity implements SearchView.On
         setContentView(R.layout.activity_book_list);
         mLoadingProgress = findViewById(R.id.pb_loading);
         rvBooks = findViewById(R.id.rv_books);
+        Intent intent = getIntent();
+        String query = intent.getStringExtra("Query");
+        URL bookUrl;
         LinearLayoutManager booksLayoutManager = new LinearLayoutManager(
                 this,
                 LinearLayoutManager.VERTICAL,
                 false);
         rvBooks.setLayoutManager(booksLayoutManager);
         try {
-            URL bookUrl = ApiUtil.buildUrl("cooking");
+            if (query == null || query.isEmpty()) {
+                bookUrl = ApiUtil.buildUrl("cooking");
+            } else {
+                bookUrl = new URL(query);
+            }
             new BooksQueryTask().execute(bookUrl);
         } catch (Exception e) {
             Log.d("error", e.getMessage());
@@ -51,10 +59,24 @@ public class BookListActivity extends AppCompatActivity implements SearchView.On
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_advanced_search:
+                Intent intent = new Intent(this, SearchActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+
+    }
+
+    @Override
     public boolean onQueryTextSubmit(String query) {
         try {
-          URL bookUrl = ApiUtil.buildUrl(query);
-          new BooksQueryTask().execute(bookUrl);
+            URL bookUrl = ApiUtil.buildUrl(query);
+            new BooksQueryTask().execute(bookUrl);
         } catch (Exception e) {
             Log.d("error", e.getMessage());
         }
